@@ -42,7 +42,7 @@ public class MainWindow {
             if (stopwatch.isPause()) {
                 stopwatch.setPause(false);
                 startButton.setText(PAUSE_STATUS);
-                stopwatch.resume();
+                stopwatch.resumeThis();
             } else if (startButton.getText().equals(START_STATUS)) {
                 startButton.setText(PAUSE_STATUS);
                 stopwatch.start();
@@ -119,7 +119,11 @@ public class MainWindow {
 
         public void pause() {
             pause = true;
-            suspend();
+        }
+
+        public synchronized void resumeThis() {
+            pause = false;
+            notify();
         }
 
         public void stopThis() {
@@ -133,6 +137,12 @@ public class MainWindow {
             format.setTimeZone(TimeZone.getTimeZone("GMT"));
             while (running) {
                 try {
+                    synchronized (this) {
+                        while (pause) {
+                            wait();
+                        }
+                    }
+
                     millisecondsLabel.setText(milliFormat.format(new Date(milliseconds)));
                     stopwatchLabel.setText(format.format(new Date(milliseconds)));
                     milliseconds += 2;
