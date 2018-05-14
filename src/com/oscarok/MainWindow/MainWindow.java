@@ -75,7 +75,7 @@ public class MainWindow {
 
         resetButton.addActionListener(e -> {
             if (stopwatch != null) {
-                stopwatch.stop();
+                stopwatch.stopThis();
                 startButton.setText(START_STATUS);
                 stopwatchLabel.setText(STOPWATCH_INITIAL_STATUS);
                 millisecondsLabel.setText(MILLISECONDS_INITIAL_STATUS);
@@ -120,6 +120,10 @@ public class MainWindow {
         public void pause() {
             pause = true;
             suspend();
+        }
+
+        public void stopThis() {
+            running = false;
         }
 
         @Override
