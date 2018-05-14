@@ -2,6 +2,10 @@ package com.oscarok.MainWindow;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.TimeZone;
 
 public class MainWindow {
     private final static String STOPWATCH_INITIAL_STATUS = "00:00:00";
@@ -118,10 +122,7 @@ public class MainWindow {
     }
 
     private class Stopwatch extends Thread {
-        private int milliseconds;
-        private int seconds;
-        private int minutes;
-        private int hours;
+        private long milliseconds;
         private boolean running = true;
         private boolean pause = false;
 
@@ -144,70 +145,19 @@ public class MainWindow {
 
         @Override
         public void run() {
+            SimpleDateFormat format = new SimpleDateFormat("HH:mm:ss");
+            DateFormat milliFormat = new SimpleDateFormat("SSS");
+            format.setTimeZone(TimeZone.getTimeZone("GMT"));
             while (running) {
                 try {
+                    millisecondsLabel.setText(milliFormat.format(new Date(milliseconds)));
+                    stopwatchLabel.setText(format.format(new Date(milliseconds)));
                     milliseconds += 2;
-
-                    if (milliseconds > 999) {
-                        seconds++;
-                        milliseconds = 0;
-                    }
-
-                    if (seconds > 59) {
-                        minutes++;
-                        seconds = 0;
-                    }
-
-                    if (minutes > 59) {
-                        hours++;
-                        minutes = 0;
-                    }
-
-                    assignTime();
                     sleep(2);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
-        }
-
-        private void assignTime() {
-            StringBuilder stringBuilder = new StringBuilder();
-
-            if (milliseconds < 10) {
-                stringBuilder.append("00").append(milliseconds);
-            } else if (milliseconds < 100) {
-                stringBuilder.append("0").append(milliseconds);
-            } else {
-                stringBuilder.append(milliseconds);
-            }
-
-            millisecondsLabel.setText(stringBuilder.toString());
-            stringBuilder.setLength(0);
-
-            if (hours < 10) {
-                stringBuilder.append(0).append(hours);
-            } else {
-                stringBuilder.append(hours);
-            }
-
-            stringBuilder.append(":");
-
-            if (minutes < 10) {
-                stringBuilder.append(0).append(minutes);
-            } else {
-                stringBuilder.append(minutes);
-            }
-
-            stringBuilder.append(":");
-
-            if (seconds < 10) {
-                stringBuilder.append(0).append(seconds);
-            } else {
-                stringBuilder.append(seconds);
-            }
-
-            stopwatchLabel.setText(stringBuilder.toString());
         }
     }
 }
