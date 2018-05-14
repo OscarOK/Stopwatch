@@ -54,40 +54,19 @@ public class MainWindow {
 
         lapButton.addActionListener(e -> {
             if (count >= 1) {
-                String[] previous = ((String) tableModel.getValueAt(count - 1, 2)).split(":");
                 String[] actual = stopwatchLabel.getText().split(":");
-                int preSec = Integer.parseInt(previous[0]) * 120 + Integer.parseInt(previous[1]) * 60 + Integer.parseInt(previous[2]);
-                int actSec = Integer.parseInt(actual[0]) * 120 + Integer.parseInt(actual[1]) * 60 + Integer.parseInt(actual[2]);
-                int aux = actSec - preSec;
-                int hours = aux / 120;
-                int minutes = aux / 60;
-                int seconds = aux % 60;
+                String[] previous = ((String) tableModel.getValueAt(count - 1, 2)).split(":");
+                long milliActual = Integer.parseInt(actual[0]) * 3600000
+                        + Integer.parseInt(actual[1]) * 60000 + Integer.parseInt(actual[2]) * 1000;
+                long milliPrev = Integer.parseInt(previous[0]) * 3600000
+                        + Integer.parseInt(previous[1]) * 60000 + Integer.parseInt(previous[2]) * 1000;
 
-                StringBuilder stringBuilder = new StringBuilder();
+                long aux = milliActual - milliPrev;
 
-                if (hours < 10) {
-                    stringBuilder.append(0).append(hours);
-                } else {
-                    stringBuilder.append(hours);
-                }
+                SimpleDateFormat format = new SimpleDateFormat("HH:mm:ss");
+                format.setTimeZone(TimeZone.getTimeZone("GMT"));
 
-                stringBuilder.append(":");
-
-                if (minutes < 10) {
-                    stringBuilder.append(0).append(minutes);
-                } else {
-                    stringBuilder.append(minutes);
-                }
-
-                stringBuilder.append(":");
-
-                if (seconds < 10) {
-                    stringBuilder.append(0).append(seconds);
-                } else {
-                    stringBuilder.append(seconds);
-                }
-
-                tableModel.addRow(new String[] {"" + (count + 1), stringBuilder.toString(), stopwatchLabel.getText()});
+                tableModel.addRow(new String[] {"" + (count + 1), format.format(new Date(aux)), stopwatchLabel.getText()});
             } else {
                 tableModel.addRow(new String[] {"" + (count + 1), stopwatchLabel.getText(), stopwatchLabel.getText()});
             }
