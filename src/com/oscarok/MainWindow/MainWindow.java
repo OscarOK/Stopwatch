@@ -2,10 +2,6 @@ package com.oscarok.MainWindow;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.TimeZone;
 
 public class MainWindow {
     private final static String STOPWATCH_INITIAL_STATUS = "00:00:00";
@@ -16,6 +12,7 @@ public class MainWindow {
 
     private Stopwatch stopwatch;
     private int count;
+    private long milliseconds;
 
     private JPanel mainPanel;
     private JPanel buttons;
@@ -27,6 +24,7 @@ public class MainWindow {
     private JButton lapButton;
     private JPanel Timer;
     private JPanel Table;
+
 
     public MainWindow() {
 
@@ -49,26 +47,22 @@ public class MainWindow {
             } else {
                 startButton.setText(START_STATUS);
                 stopwatch.pause();
+                stopwatch.stop();
             }
         });
 
         lapButton.addActionListener(e -> {
             if (count >= 1) {
-                String[] actual = stopwatchLabel.getText().split(":");
                 String[] previous = ((String) tableModel.getValueAt(count - 1, 2)).split(":");
-                long milliActual = Integer.parseInt(actual[0]) * 3600000
-                        + Integer.parseInt(actual[1]) * 60000 + Integer.parseInt(actual[2]) * 1000;
                 long milliPrev = Integer.parseInt(previous[0]) * 3600000
                         + Integer.parseInt(previous[1]) * 60000 + Integer.parseInt(previous[2]) * 1000;
 
-                long aux = milliActual - milliPrev;
+                long aux = milliseconds - milliPrev;
 
-                SimpleDateFormat format = new SimpleDateFormat("HH:mm:ss");
-                format.setTimeZone(TimeZone.getTimeZone("GMT"));
-
-                tableModel.addRow(new String[] {"" + (count + 1), format.format(new Date(aux)), stopwatchLabel.getText()});
+                tableModel.addRow(new String[]{"" + (count + 1), String.format("%02d:%02d:%02d", (aux / 3600000),
+                        (aux / 60000) % 60, (aux / 1000) % 60), stopwatchLabel.getText()});
             } else {
-                tableModel.addRow(new String[] {"" + (count + 1), stopwatchLabel.getText(), stopwatchLabel.getText()});
+                tableModel.addRow(new String[]{"" + (count + 1), stopwatchLabel.getText(), stopwatchLabel.getText()});
             }
             count++;
         });
@@ -80,6 +74,7 @@ public class MainWindow {
                 stopwatchLabel.setText(STOPWATCH_INITIAL_STATUS);
                 millisecondsLabel.setText(MILLISECONDS_INITIAL_STATUS);
                 stopwatch = null;
+                milliseconds = 0;
             }
             tableModel.setNumRows(0);
             count = 0;
@@ -101,7 +96,6 @@ public class MainWindow {
     }
 
     private class Stopwatch extends Thread {
-        private long milliseconds;
         private boolean running = true;
         private boolean pause = false;
 
@@ -132,24 +126,19 @@ public class MainWindow {
 
         @Override
         public void run() {
-            SimpleDateFormat format = new SimpleDateFormat("HH:mm:ss");
-            DateFormat milliFormat = new SimpleDateFormat("SSS");
-            format.setTimeZone(TimeZone.getTimeZone("GMT"));
-            while (running) {
-                try {
+            try {
+                while (running) {
                     synchronized (this) {
-                        while (pause) {
-                            wait();
-                        }
+                        if (pause) { wait(); }
                     }
-
-                    millisecondsLabel.setText(milliFormat.format(new Date(milliseconds)));
-                    stopwatchLabel.setText(format.format(new Date(milliseconds)));
+                    stopwatchLabel.setText(String.format("%02d:%02d:%02d", (milliseconds / 3600000),
+                            (milliseconds / 60000) % 60, (milliseconds / 1000) % 60));
+                    millisecondsLabel.setText(String.format("%03d", milliseconds % 1000));
                     milliseconds += 2;
                     sleep(2);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
                 }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
             }
         }
     }
